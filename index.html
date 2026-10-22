@@ -1,0 +1,3073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Smart Grocery Checklist - iOS Ultimate Edition</title>
+  
+  <!-- =====================================================================
+       CSS STYLESHEET
+       Apple iOS Design System: Frosted Glass (blur), Spring Animations,
+       Haptic Feedback, Auto-Categorization, Voice Input, Units & Manat (₼) Budget.
+       ===================================================================== -->
+  <style>
+    /* ===================================================================
+       1. iOS SYSTEM TOKENS & DYNAMIC THEMES
+       =================================================================== */
+    :root {
+      /* Apple iOS Palette */
+      --ios-blue: #007AFF;
+      --ios-blue-hover: #0062CC;
+      --ios-green: #34C759;
+      --ios-indigo: #5856D6;
+      --ios-orange: #FF9500;
+      --ios-amber: #D97706;
+      --ios-red: #FF3B30;
+      --ios-red-light: rgba(255, 59, 48, 0.12);
+      
+      /* Light Theme Surfaces & Glass */
+      --bg-ambient: radial-gradient(at 10% 10%, rgba(0, 122, 255, 0.09) 0px, transparent 50%),
+                    radial-gradient(at 90% 90%, rgba(52, 199, 89, 0.08) 0px, transparent 50%),
+                    #F2F2F7;
+      --surface-glass: rgba(255, 255, 255, 0.74);
+      --surface-glass-solid: #FFFFFF;
+      --surface-subtle: rgba(118, 118, 128, 0.12);
+      --surface-active: rgba(0, 122, 255, 0.12);
+      --border-glass: rgba(255, 255, 255, 0.7);
+      --border-hairline: rgba(60, 60, 67, 0.18);
+
+      /* Typography */
+      --text-primary: #000000;
+      --text-secondary: #3C3C4399; /* 60% */
+      --text-tertiary: #3C3C434D;  /* 30% */
+
+      /* Radii */
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-card: 22px;
+      --radius-pill: 9999px;
+
+      /* iOS Elevation Shadows */
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-sheet: 0 16px 48px rgba(0, 0, 0, 0.18);
+
+      /* Physics-based Spring Transitions */
+      --spring-fast: 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+      --spring-normal: 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+      --spring-bounce: 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ===================================================================
+       iOS DARK MODE GLASSMORPHISM
+       =================================================================== */
+    body.dark-theme {
+      --bg-ambient: radial-gradient(at 10% 10%, rgba(0, 122, 255, 0.15) 0px, transparent 50%),
+                    radial-gradient(at 90% 90%, rgba(52, 199, 89, 0.12) 0px, transparent 50%),
+                    #000000;
+      --surface-glass: rgba(28, 28, 30, 0.76);
+      --surface-glass-solid: #1C1C1E;
+      --surface-subtle: rgba(118, 118, 128, 0.24);
+      --surface-active: rgba(10, 132, 255, 0.2);
+      --border-glass: rgba(255, 255, 255, 0.14);
+      --border-hairline: rgba(255, 255, 255, 0.15);
+
+      --text-primary: #FFFFFF;
+      --text-secondary: #EBEBF599;
+      --text-tertiary: #EBEBF54D;
+
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.45);
+      --shadow-sheet: 0 16px 48px rgba(0, 0, 0, 0.75);
+    }
+
+    /* ===================================================================
+       2. RESET & BASE
+       =================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg-ambient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px 12px 60px 12px;
+      line-height: 1.4;
+      letter-spacing: -0.015em;
+      transition: background var(--spring-normal), color var(--spring-normal);
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ===================================================================
+       3. iOS ROOT CONTAINER & GLASS UTILITIES
+       =================================================================== */
+    .ios-app-container {
+      width: 100%;
+      max-width: 490px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .glass-card {
+      background: var(--surface-glass);
+      backdrop-filter: blur(24px) saturate(190%);
+      -webkit-backdrop-filter: blur(24px) saturate(190%);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-glass);
+      transition: background var(--spring-normal), border-color var(--spring-normal), transform var(--spring-fast);
+    }
+
+    /* ===================================================================
+       4. MULTI-LIST SELECTOR & TOP NAV BAR
+       =================================================================== */
+    .ios-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Lists Switcher Pill */
+    .list-selector-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .list-selector-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: transform var(--spring-fast);
+    }
+
+    .list-selector-btn:active {
+      transform: scale(0.95);
+    }
+
+    .list-selector-btn svg {
+      width: 12px;
+      height: 12px;
+      stroke: var(--text-secondary);
+    }
+
+    /* Top Nav Right Controls */
+    .nav-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Language Switcher Segment */
+    .ios-lang-segmented {
+      display: flex;
+      background: var(--surface-subtle);
+      padding: 2px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-hairline);
+    }
+
+    .lang-pill-btn {
+      padding: 3px 9px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-secondary);
+      transition: all var(--spring-fast);
+    }
+
+    .lang-pill-btn.is-active {
+      background: var(--surface-glass-solid);
+      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    body.dark-theme .lang-pill-btn.is-active {
+      background: var(--ios-blue);
+      color: #FFFFFF;
+    }
+
+    /* Theme Switch */
+    .ios-switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      background-color: var(--surface-subtle);
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-hairline);
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5px;
+      transition: background-color var(--spring-normal);
+    }
+
+    body.dark-theme .ios-switch {
+      background-color: var(--ios-indigo);
+      border-color: transparent;
+    }
+
+    .ios-switch svg {
+      width: 12px;
+      height: 12px;
+      stroke: var(--text-secondary);
+      z-index: 1;
+    }
+
+    body.dark-theme .ios-switch svg.icon-moon {
+      stroke: #FFFFFF;
+    }
+
+    .ios-switch-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 22px;
+      height: 22px;
+      background-color: #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      transition: transform var(--spring-bounce);
+    }
+
+    body.dark-theme .ios-switch-knob {
+      transform: translateX(20px);
+    }
+
+    /* ===================================================================
+       5. HEADER CARD: BUDGET (₼ MANAT), LIMIT & PROGRESS
+       =================================================================== */
+    .ios-header {
+      padding: 18px 16px 16px 16px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .brand-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #007AFF 0%, #34C759 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.28);
+    }
+
+    .brand-badge svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Budget Limit Button in Header */
+    .btn-edit-limit {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--ios-blue);
+      background: var(--surface-subtle);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all var(--spring-fast);
+    }
+
+    .btn-edit-limit:active {
+      transform: scale(0.94);
+    }
+
+    /* 4-Column Budget Grid in Azerbaijani Manat (₼) */
+    .manat-budget-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .budget-tile {
+      background: var(--surface-subtle);
+      padding: 8px 4px;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 2px;
+    }
+
+    .budget-tile-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .budget-tile-val {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .budget-tile-val.spent { color: var(--ios-green); }
+    .budget-tile-val.remain { color: var(--ios-blue); }
+    .budget-tile-val.limit { color: var(--ios-orange); }
+
+    /* Budget Alert Banner (Appears when over budget) */
+    .budget-alert-banner {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 59, 48, 0.15);
+      border: 1px solid rgba(255, 59, 48, 0.25);
+      color: var(--ios-red);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.76rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      animation: alertPop var(--spring-bounce);
+    }
+
+    @keyframes alertPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* iOS Progress Bar */
+    .ios-progress-track {
+      width: 100%;
+      height: 6px;
+      background-color: var(--surface-subtle);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+    }
+
+    .ios-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--ios-blue) 0%, var(--ios-green) 100%);
+      border-radius: var(--radius-pill);
+      transition: width var(--spring-normal);
+    }
+
+    .progress-caption {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* ===================================================================
+       6. ADD ITEM CARD (VOICE, UNITS, CHIPS, AUTO-CATEGORY)
+       =================================================================== */
+    .ios-form {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-group-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      letter-spacing: 0.03em;
+      margin-left: 2px;
+    }
+
+    /* Input Row: Name, Mic & Manat Price */
+    .ios-input-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .name-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .ios-text-input {
+      width: 100%;
+      height: 46px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      padding: 0 42px 0 14px;
+      font-size: 0.94rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      transition: background var(--spring-fast), box-shadow var(--spring-fast);
+    }
+
+    .ios-text-input:focus {
+      background: var(--surface-glass-solid);
+      box-shadow: 0 0 0 2px var(--ios-blue);
+    }
+
+    /* Voice Input Microphone Button */
+    .btn-voice-input {
+      position: absolute;
+      right: 6px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--spring-fast);
+    }
+
+    .btn-voice-input:hover {
+      background: var(--surface-subtle);
+      color: var(--ios-blue);
+    }
+
+    .btn-voice-input.is-recording {
+      background: var(--ios-red);
+      color: #FFFFFF;
+      animation: micPulse 1s infinite alternate;
+    }
+
+    @keyframes micPulse {
+      from { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+      to   { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 59, 48, 0); }
+    }
+
+    .btn-voice-input svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    /* Manat Price Input Field */
+    .price-input-wrap {
+      width: 115px;
+      position: relative;
+    }
+
+    .price-currency-sign {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      pointer-events: none;
+    }
+
+    .ios-price-input {
+      width: 100%;
+      height: 46px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      padding: 0 8px 0 26px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ios-price-input:focus {
+      background: var(--surface-glass-solid);
+      box-shadow: 0 0 0 2px var(--ios-blue);
+    }
+
+    /* Quick Favorites Chips Row */
+    .quick-favorites-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .quick-favorites-row::-webkit-scrollbar { display: none; }
+
+    .fav-chip {
+      padding: 4px 10px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-pill);
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all var(--spring-fast);
+    }
+
+    .fav-chip:active {
+      transform: scale(0.92);
+      background: var(--surface-active);
+      color: var(--ios-blue);
+    }
+
+    /* Units Selector & Quantity Controls Row */
+    .controls-unit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Units Segmented Control */
+    .ios-units-segmented {
+      display: flex;
+      background: var(--surface-subtle);
+      padding: 2px;
+      border-radius: var(--radius-md);
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .unit-segment-btn {
+      flex: 1;
+      padding: 7px 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      transition: all var(--spring-fast);
+    }
+
+    .unit-segment-btn.is-active {
+      background: var(--surface-glass-solid);
+      color: var(--text-primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      font-weight: 700;
+    }
+
+    body.dark-theme .unit-segment-btn.is-active {
+      background: var(--ios-blue);
+      color: #FFFFFF;
+    }
+
+    /* Stepper */
+    .ios-stepper {
+      display: flex;
+      align-items: center;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      height: 42px;
+      padding: 2px;
+    }
+
+    .stepper-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--ios-blue);
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--spring-fast);
+    }
+
+    .stepper-action-btn:active {
+      transform: scale(0.88);
+    }
+
+    .stepper-quantity-val {
+      min-width: 32px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Category Pill Selector (With Auto-Categorization) */
+    .pills-scroll-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0 4px 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pills-scroll-row::-webkit-scrollbar { display: none; }
+
+    .ios-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all var(--spring-fast);
+    }
+
+    .ios-pill-btn:active { transform: scale(0.94); }
+
+    .ios-pill-btn.is-active {
+      background: var(--ios-blue);
+      color: #FFFFFF;
+      box-shadow: 0 3px 10px rgba(0, 122, 255, 0.35);
+    }
+
+    .ios-pill-btn.gf-pill.is-active {
+      background: linear-gradient(135deg, var(--ios-amber) 0%, #F59E0B 100%);
+      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.35);
+    }
+
+    /* Image Dropdown */
+    .ios-select {
+      width: 100%;
+      height: 38px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      padding: 0 10px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .custom-url-container { margin-top: 4px; }
+
+    /* Add Item Button */
+    .ios-btn-add {
+      width: 100%;
+      height: 46px;
+      background: var(--ios-blue);
+      color: #FFFFFF;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 122, 255, 0.32);
+      transition: transform var(--spring-fast), opacity var(--spring-fast);
+    }
+
+    .ios-btn-add:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    .ios-btn-add svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    /* ===================================================================
+       7. TOOLBAR: SORTING, 1-CLICK SHARE, CLEAR ALL & FILTERS
+       =================================================================== */
+    .toolbar-actions-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .toolbar-left-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-bar-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* Sort Select Button */
+    .ios-sort-select {
+      background: var(--surface-subtle);
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .toolbar-right-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Share Button */
+    .ios-btn-share {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--ios-blue);
+      background: rgba(0, 122, 255, 0.12);
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all var(--spring-fast);
+    }
+
+    .ios-btn-share:active { transform: scale(0.92); }
+    .ios-btn-share svg { width: 13px; height: 13px; stroke: currentColor; }
+
+    /* Clear All Button */
+    .ios-btn-clear {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--ios-red);
+      background: var(--ios-red-light);
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all var(--spring-fast);
+    }
+
+    .ios-btn-clear:active { transform: scale(0.92); }
+    .ios-btn-clear svg { width: 13px; height: 13px; stroke: currentColor; }
+
+    /* Filter Category Pills */
+    .category-filter-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 2px 4px 2px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .category-filter-pills::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-pill);
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all var(--spring-fast);
+    }
+
+    .filter-pill:active { transform: scale(0.94); }
+
+    .filter-pill.is-active {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+      color: var(--surface-glass-solid);
+    }
+
+    body.dark-theme .filter-pill.is-active {
+      background: var(--ios-blue);
+      border-color: var(--ios-blue);
+      color: #FFFFFF;
+    }
+
+    .filter-pill.gf-tab.is-active {
+      background: var(--ios-amber);
+      border-color: var(--ios-amber);
+      color: #FFFFFF;
+    }
+
+    .filter-counter {
+      font-size: 0.68rem;
+      background: var(--surface-subtle);
+      padding: 1px 5px;
+      border-radius: var(--radius-pill);
+      color: inherit;
+    }
+
+    .filter-pill.is-active .filter-counter {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ===================================================================
+       8. CHECKLIST ITEMS & ROW ANIMATIONS
+       =================================================================== */
+    .ios-checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ios-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      gap: 10px;
+      min-height: 60px;
+      animation: iosSlideIn var(--spring-normal) forwards;
+      transform-origin: top center;
+    }
+
+    @keyframes iosSlideIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .ios-item-row.is-removing {
+      animation: iosSlideOut var(--spring-fast) forwards;
+    }
+
+    @keyframes iosSlideOut {
+      to {
+        opacity: 0;
+        transform: translateX(40px) scale(0.92);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: -8px;
+      }
+    }
+
+    .item-interactive-zone {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .ios-checkbox-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--border-hairline);
+      background-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all var(--spring-fast);
+    }
+
+    .ios-checkbox-circle svg {
+      width: 12px;
+      height: 12px;
+      stroke: #FFFFFF;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: transform var(--spring-bounce), opacity var(--spring-fast);
+    }
+
+    .ios-item-row.is-completed { opacity: 0.6; }
+
+    .ios-item-row.is-completed .ios-checkbox-circle {
+      background-color: var(--ios-green);
+      border-color: var(--ios-green);
+      transform: scale(1.05);
+    }
+
+    .ios-item-row.is-completed .ios-checkbox-circle svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .ios-item-row.is-completed .item-name {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+
+    .item-media-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      border: 1px solid var(--border-hairline);
+    }
+
+    .item-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .item-category-emoji { font-size: 1.25rem; }
+
+    .item-text-column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      word-break: break-word;
+      transition: color var(--spring-fast);
+    }
+
+    .item-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+
+    .badge-qty {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+    }
+
+    .badge-manat-price {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--ios-green);
+      background: rgba(52, 199, 89, 0.12);
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge-gluten-free {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #B45309;
+      background: #FEF3C7;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    body.dark-theme .badge-gluten-free {
+      color: #FDE68A;
+      background: rgba(217, 119, 6, 0.25);
+    }
+
+    .ios-btn-delete {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color var(--spring-fast), background var(--spring-fast), transform var(--spring-fast);
+    }
+
+    .ios-btn-delete:active {
+      transform: scale(0.85);
+      background: rgba(255, 59, 48, 0.15);
+      color: var(--ios-red);
+    }
+
+    .ios-btn-delete svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+    }
+
+    /* ===================================================================
+       9. EMPTY STATE & DIALOGS
+       =================================================================== */
+    .ios-empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .empty-icon-bubble {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--surface-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon-bubble svg {
+      width: 28px;
+      height: 28px;
+      stroke: currentColor;
+    }
+
+    .empty-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .empty-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      max-width: 260px;
+    }
+
+    /* Modal Backdrop */
+    .ios-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--spring-normal);
+    }
+
+    .ios-modal-backdrop.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .ios-modal-dialog {
+      width: 100%;
+      max-width: 320px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      box-shadow: var(--shadow-sheet);
+      text-align: center;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform var(--spring-bounce);
+    }
+
+    .ios-modal-backdrop.is-active .ios-modal-dialog {
+      transform: scale(1);
+    }
+
+    .modal-body {
+      padding: 20px 18px 16px 18px;
+    }
+
+    .modal-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .modal-input {
+      width: 100%;
+      height: 44px;
+      margin-top: 12px;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      padding: 0 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .modal-buttons-column {
+      display: flex;
+      flex-direction: column;
+      border-top: 0.5px solid var(--border-hairline);
+    }
+
+    .modal-btn {
+      height: 46px;
+      background: transparent;
+      font-size: 0.94rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--spring-fast);
+    }
+
+    .modal-btn.primary { color: var(--ios-blue); border-bottom: 0.5px solid var(--border-hairline); }
+    .modal-btn.destructive { color: var(--ios-red); border-bottom: 0.5px solid var(--border-hairline); }
+    .modal-btn.cancel { color: var(--text-secondary); font-weight: 500; }
+    .modal-btn:active { background: var(--surface-subtle); }
+
+    /* iOS Share Options List */
+    .share-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-share-channel {
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: var(--surface-subtle);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background var(--spring-fast);
+    }
+
+    .btn-share-channel:active { background: var(--surface-active); }
+
+    
+    /* ===================================================================
+       11. APPLE ID AUTHOR CARD & PROFILE SHEET
+       =================================================================== */
+    .ios-author-card {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      gap: 14px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: transform var(--spring-fast), box-shadow var(--spring-fast);
+    }
+
+    .ios-author-card:active {
+      transform: scale(0.97);
+    }
+
+    .author-avatar-wrap {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #E5E5EA;
+      border: 1px solid var(--border-hairline);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .author-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .author-info-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .author-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .author-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.25;
+    }
+
+    .author-chevron {
+      width: 18px;
+      height: 18px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .author-chevron svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    /* Author Modal Sheet Specifics */
+    .author-modal-dialog {
+      max-width: 340px;
+    }
+
+    .author-modal-body {
+      padding: 24px 20px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .author-big-avatar-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #E5E5EA;
+      border: 2px solid var(--border-glass);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      margin-bottom: 12px;
+    }
+
+    .author-big-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .author-verified-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 24px;
+      height: 24px;
+      background: var(--ios-blue);
+      color: #FFFFFF;
+      border-radius: 50%;
+      border: 2px solid var(--surface-glass-solid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .author-verified-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .author-modal-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 2px;
+    }
+
+    .author-modal-role {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ios-blue);
+      margin-bottom: 8px;
+    }
+
+    .author-modal-bio {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+
+    .ios-profile-links-group {
+      width: 100%;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border-hairline);
+      margin-bottom: 12px;
+    }
+
+    .profile-link-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: background var(--spring-fast);
+      position: relative;
+    }
+
+    .profile-link-row:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+      right: 0;
+      height: 0.5px;
+      background: var(--border-hairline);
+    }
+
+    .profile-link-row:active {
+      background: var(--surface-active);
+    }
+
+    .profile-link-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #FFFFFF;
+    }
+
+    .profile-link-icon.globe {
+      background: linear-gradient(135deg, #007AFF 0%, #00C6FF 100%);
+    }
+
+    .profile-link-icon.chat {
+      background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+    }
+
+    .profile-link-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+
+    .profile-link-text {
+      flex: 1;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .profile-link-title {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .profile-link-url {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-link-arrow {
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+    }
+
+    .profile-link-arrow svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+    }
+
+    .author-app-meta {
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+
+    /* ===================================================================
+       10. RECEIPT PRINT STYLES (@media print)
+       =================================================================== */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .ios-top-bar, .ios-form, .toolbar-actions-header, .category-filter-pills,
+      .ios-btn-delete, .ios-modal-backdrop, .btn-edit-limit, .ios-switch-container {
+        display: none !important;
+      }
+      .glass-card {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+      }
+      .ios-item-row {
+        border-bottom: 1px dashed #CCCCCC !important;
+        min-height: auto !important;
+        padding: 8px 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =====================================================================
+       iOS ROOT CONTAINER
+       ===================================================================== -->
+  <main class="ios-app-container">
+
+    <!-- ===================================================================
+       TOP BAR: Multi-List Selector, Language (EN/RU) & Theme Switch
+       =================================================================== -->
+    <div class="ios-top-bar">
+      <!-- 4. Multi-List Switcher -->
+      <div class="list-selector-wrap">
+        <button type="button" id="btnListSelector" class="list-selector-btn" aria-label="Switch shopping list">
+          <span id="currentListIcon">🛒</span>
+          <span id="currentListName">Supermarket</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Controls: Bilingual Switcher (EN / RU) & Dark Mode -->
+      <div class="nav-controls-group">
+        <div class="ios-lang-segmented" role="group" aria-label="Language">
+          <button type="button" class="lang-pill-btn is-active" id="langBtnEn">EN</button>
+          <button type="button" class="lang-pill-btn" id="langBtnRu">RU</button>
+        </div>
+
+        <div class="ios-switch-container">
+          <button type="button" id="themeToggleBtn" class="ios-switch" role="switch" aria-checked="false" aria-label="Toggle theme">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span class="ios-switch-knob" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+       HEADER CARD: Budget In Azerbaijani Manat (₼), Cap Limit & Progress
+       =================================================================== -->
+    <header class="glass-card ios-header">
+      <div class="brand-row">
+        <div class="brand-title-wrap">
+          <div class="brand-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="brand-title" id="txtBrandTitle">Grocery List</h1>
+            <p class="brand-subtitle" id="txtBrandSubtitle">iOS Edition</p>
+          </div>
+        </div>
+
+        <!-- 2. Budget Limit Edit Button -->
+        <button type="button" id="btnEditLimit" class="btn-edit-limit">
+          <span>🎯</span>
+          <span id="txtEditLimitBtn">Set Limit</span>
+        </button>
+      </div>
+
+      <!-- 4-Column Manat Budget Overview -->
+      <div class="manat-budget-grid" aria-label="Budget calculation in Azerbaijani Manat">
+        <div class="budget-tile">
+          <span class="budget-tile-label" id="txtTotalPlanLabel">Total</span>
+          <span class="budget-tile-val" id="totalBudgetVal">₼ 0.00</span>
+        </div>
+        <div class="budget-tile">
+          <span class="budget-tile-label" id="txtInBasketLabel">Basket</span>
+          <span class="budget-tile-val spent" id="spentBudgetVal">₼ 0.00</span>
+        </div>
+        <div class="budget-tile">
+          <span class="budget-tile-label" id="txtRemainingLabel">Remain</span>
+          <span class="budget-tile-val remain" id="remainBudgetVal">₼ 0.00</span>
+        </div>
+        <div class="budget-tile">
+          <span class="budget-tile-label" id="txtLimitLabel">Limit</span>
+          <span class="budget-tile-val limit" id="limitBudgetVal">₼ 0.00</span>
+        </div>
+      </div>
+
+      <!-- Budget Exceeded Warning Alert -->
+      <div id="budgetAlertBanner" class="budget-alert-banner">
+        <span>⚠️</span>
+        <span id="txtBudgetAlertMsg">Over budget limit!</span>
+      </div>
+
+      <!-- iOS Progress Bar -->
+      <div class="ios-progress-track" aria-hidden="true">
+        <div class="ios-progress-fill" id="progressBar"></div>
+      </div>
+      <div class="progress-caption">
+        <span id="itemsSummary">0 of 0 collected</span>
+        <span id="progressPercentage">0%</span>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+       ADD ITEM CARD: Voice Input, Units (kg/pcs/L), Favorites & Auto-Category
+       =================================================================== */ -->
+    <section class="glass-card ios-form" aria-label="Add grocery product">
+      <!-- Name, Voice Mic & Price -->
+      <div class="ios-input-row">
+        <div class="name-input-wrap">
+          <input 
+            type="text" 
+            id="itemInput" 
+            class="ios-text-input" 
+            placeholder="Product name (e.g. Sourdough)" 
+            autocomplete="off"
+            maxlength="60"
+          />
+          <!-- 1. Voice Input Microphone Button -->
+          <button type="button" id="btnVoiceInput" class="btn-voice-input" aria-label="Voice input">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Azerbaijani Manat Price Field -->
+        <div class="price-input-wrap">
+          <span class="price-currency-sign">₼</span>
+          <input 
+            type="number" 
+            id="itemPriceInput" 
+            class="ios-price-input" 
+            placeholder="0.00" 
+            step="0.01" 
+            min="0"
+            max="9999"
+          />
+        </div>
+      </div>
+
+      <!-- 1. Quick Favorites Chips (1-tap add) -->
+      <div class="quick-favorites-row" id="quickFavoritesRow">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- 2. Units of Measurement (pcs, kg, g, L, pack) & Stepper -->
+      <div class="controls-unit-row">
+        <div class="ios-units-segmented" id="unitsSegmented" role="radiogroup" aria-label="Unit">
+          <button type="button" class="unit-segment-btn is-active" data-unit="pcs">pcs</button>
+          <button type="button" class="unit-segment-btn" data-unit="kg">kg</button>
+          <button type="button" class="unit-segment-btn" data-unit="g">g</button>
+          <button type="button" class="unit-segment-btn" data-unit="L">L</button>
+          <button type="button" class="unit-segment-btn" data-unit="pack">pack</button>
+        </div>
+
+        <!-- Stepper -->
+        <div class="ios-stepper" role="group" aria-label="Quantity selector">
+          <button type="button" id="btnMinus" class="stepper-action-btn">−</button>
+          <span id="quantityDisplay" class="stepper-quantity-val">1</span>
+          <button type="button" id="btnPlus" class="stepper-action-btn">+</button>
+        </div>
+      </div>
+
+      <!-- Category Selector with Smart Auto-Categorization & Gluten-Free -->
+      <div>
+        <label class="form-group-title" id="txtCategorySectionTitle">Category / Allergen</label>
+        <div class="pills-scroll-row" id="formCategoryPills" role="radiogroup"></div>
+      </div>
+
+      <!-- Image Source Selection -->
+      <div>
+        <label for="imageSourceSelect" class="form-group-title" id="txtImageSourceTitle">Product Image Source</label>
+        <select id="imageSourceSelect" class="ios-select">
+          <option value="search" id="optImageSearch">🌐 Global Web Search (Auto photo match)</option>
+          <option value="standard" id="optImageStandard">🛒 Standard Category Icon (Clean vector)</option>
+          <option value="custom" id="optImageCustom">🔗 Custom Image URL (Paste link)</option>
+        </select>
+        <div id="customUrlContainer" class="custom-url-container" style="display: none;">
+          <input 
+            type="url" 
+            id="customUrlInput" 
+            class="ios-text-input" 
+            placeholder="Paste direct image link (https://...)" 
+            autocomplete="off"
+            style="height: 38px; font-size: 0.82rem;"
+          />
+        </div>
+      </div>
+
+      <!-- Add Item Button -->
+      <button type="button" id="btnAddItem" class="ios-btn-add">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span id="txtAddItemBtn">Add Item</span>
+      </button>
+    </section>
+
+    <!-- ===================================================================
+       TOOLBAR: Sorting, 1-Click Share, Clear All & Filter Pills
+       =================================================================== -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="toolbar-actions-header">
+        <div class="toolbar-left-group">
+          <h2 class="filter-bar-title" id="txtChecklistHeader">Checklist</h2>
+          <!-- 3. Sort Dropdown -->
+          <select id="sortSelect" class="ios-sort-select" aria-label="Sort items">
+            <option value="default" id="optSortDefault">Sort: Default</option>
+            <option value="unbought" id="optSortUnbought">Unbought First</option>
+            <option value="price-asc" id="optSortPriceAsc">Price: Low to High</option>
+            <option value="price-desc" id="optSortPriceDesc">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div class="toolbar-right-group">
+          <!-- 2. Share Button (WhatsApp/Telegram/Clipboard) -->
+          <button type="button" id="btnShareList" class="ios-btn-share" aria-label="Share list">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            <span id="txtShareBtn">Share</span>
+          </button>
+
+          <!-- Clear All Button -->
+          <button type="button" id="btnClearAll" class="ios-btn-clear" aria-label="Clear all items">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span id="txtClearAllBtn">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Category Tabs -->
+      <nav class="category-filter-pills" id="filterPillsContainer" aria-label="Filter category"></nav>
+    </div>
+
+    <!-- ===================================================================
+       CHECKLIST SECTION: Interactive Items List & Empty State
+       =================================================================== -->
+    <section aria-label="Shopping items">
+      <ul id="groceryList" class="ios-checklist"></ul>
+
+      <div id="emptyState" class="glass-card ios-empty-state">
+        <div class="empty-icon-bubble" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            <path d="m9 14 2 2 4-4"></path>
+          </svg>
+        </div>
+        <h3 class="empty-title" id="txtEmptyTitle">Cart is Empty</h3>
+        <p class="empty-desc" id="txtEmptyDesc">Add grocery items above or switch filters.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+       11. APPLE ID AUTHOR PROFILE CARD (Tap to view details)
+       =================================================================== -->
+    <section class="glass-card ios-author-card" id="btnOpenAuthorModal" role="button" tabindex="0" aria-label="Author profile">
+      <div class="author-avatar-wrap">
+        <img src="data:image/jpeg;base64,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" alt="Ali Aliyev" class="author-avatar-img" />
+      </div>
+      <div class="author-info-wrap">
+        <h3 class="author-name" id="txtAuthorCardName">Али Алиев</h3>
+        <p class="author-subtitle" id="txtAuthorCardSubtitle">Аккаунт Apple, iCloud и другое</p>
+      </div>
+      <div class="author-chevron" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       MODALS: CLEAR ALL, SET LIMIT, SWITCH LIST & SHARE SHEET
+       ===================================================================== -->
+  
+  <!-- Clear All Modal -->
+  <div id="clearModal" class="ios-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="ios-modal-dialog">
+      <div class="modal-body">
+        <h3 id="modalClearTitle" class="modal-title">Clear Shopping List?</h3>
+        <p id="modalClearDesc" class="modal-desc">All items in this list will be removed.</p>
+      </div>
+      <div class="modal-buttons-column">
+        <button type="button" id="btnConfirmClear" class="modal-btn destructive">Clear All Items</button>
+        <button type="button" id="btnCancelClear" class="modal-btn cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Limit Modal -->
+  <div id="limitModal" class="ios-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="ios-modal-dialog">
+      <div class="modal-body">
+        <h3 id="modalLimitTitle" class="modal-title">Set Budget Limit (₼)</h3>
+        <p id="modalLimitDesc" class="modal-desc">Enter your target budget in Azerbaijani Manat.</p>
+        <input type="number" id="inputLimitValue" class="modal-input" placeholder="0.00" step="1" min="0" />
+      </div>
+      <div class="modal-buttons-column">
+        <button type="button" id="btnSaveLimit" class="modal-btn primary">Save Limit</button>
+        <button type="button" id="btnCancelLimit" class="modal-btn cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Selector Modal -->
+  <div id="listSelectorModal" class="ios-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="ios-modal-dialog">
+      <div class="modal-body">
+        <h3 id="modalListsTitle" class="modal-title">Shopping Lists</h3>
+        <p id="modalListsDesc" class="modal-desc">Select active list or create a new one.</p>
+        <div id="listsModalItems" class="share-options-list"></div>
+      </div>
+      <div class="modal-buttons-column">
+        <button type="button" id="btnCloseListModal" class="modal-btn cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Author Profile Modal (Apple ID Sheet) -->
+  <div id="authorModal" class="ios-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="ios-modal-dialog author-modal-dialog">
+      <div class="modal-body author-modal-body">
+        <div class="author-big-avatar-wrap">
+          <img src="data:image/jpeg;base64,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" alt="Ali Aliyev" class="author-big-avatar-img" />
+          <span class="author-verified-badge" title="Verified Creator">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+          </span>
+        </div>
+
+        <h3 class="author-modal-name" id="txtAuthorModalName">Али Алиев</h3>
+        <p class="author-modal-role" id="txtAuthorModalRole">Создатель и Frontend-разработчик</p>
+        <p class="author-modal-bio" id="txtAuthorModalBio">
+          Автор проекта Smart Grocery Checklist. Спроектировано с вниманием к деталям для удобных, быстрых и экономных покупок каждый день.
+        </p>
+
+        <!-- Profile Links Group -->
+        <div class="ios-profile-links-group">
+          <a href="https://sites.google.com/view/alialiyev" target="_blank" rel="noopener noreferrer" class="profile-link-row">
+            <div class="profile-link-icon globe">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+            <div class="profile-link-text">
+              <span class="profile-link-title" id="txtAuthorWebsiteLabel">Личный сайт и портфолио</span>
+              <span class="profile-link-url">sites.google.com/view/alialiyev</span>
+            </div>
+            <div class="profile-link-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </a>
+
+          <a href="https://sites.google.com/view/alialiyev" target="_blank" rel="noopener noreferrer" class="profile-link-row">
+            <div class="profile-link-icon chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+            </div>
+            <div class="profile-link-text">
+              <span class="profile-link-title" id="txtAuthorContactLabel">Контакты и соцсети</span>
+              <span class="profile-link-url" id="txtAuthorContactSub">Связаться с автором</span>
+            </div>
+            <div class="profile-link-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </a>
+        </div>
+
+        <div class="author-app-meta">
+          <span id="txtAuthorTechStack">Smart Grocery Checklist v2.5 · iOS Edition</span>
+        </div>
+      </div>
+      <div class="modal-buttons-column">
+        <button type="button" id="btnCloseAuthorModal" class="modal-btn primary"><span id="txtAuthorDoneBtn">Готово</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Sheet Modal -->
+  <div id="shareModal" class="ios-modal-backdrop" role="dialog" aria-modal="true">
+    <div class="ios-modal-dialog">
+      <div class="modal-body">
+        <h3 id="modalShareTitle" class="modal-title">Share Shopping List</h3>
+        <p id="modalShareDesc" class="modal-desc">Send list with prices and total in Manats.</p>
+        <div class="share-options-list">
+          <button type="button" id="btnShareWhatsApp" class="btn-share-channel">
+            <span>💬</span> <span>WhatsApp</span>
+          </button>
+          <button type="button" id="btnShareTelegram" class="btn-share-channel">
+            <span>✈️</span> <span>Telegram</span>
+          </button>
+          <button type="button" id="btnShareCopy" class="btn-share-channel">
+            <span>📋</span> <span id="txtShareCopyBtn">Copy to Clipboard</span>
+          </button>
+          <button type="button" id="btnSharePrint" class="btn-share-channel">
+            <span>🖨️</span> <span id="txtSharePrintBtn">Print Receipt</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-buttons-column">
+        <button type="button" id="btnCloseShareModal" class="modal-btn cancel">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       JAVASCRIPT APPLICATION LOGIC
+       Full State, SpeechRecognition, Auto-Categorization, Haptics, Units & Sharing.
+       ===================================================================== -->
+  <script>
+    (function () {
+      "use strict";
+
+      /* ===================================================================
+         1. I18N DICTIONARIES
+         =================================================================== */
+      const I18N = {
+        en: {
+          appTitle: "Grocery List",
+          appSubtitle: "iOS Edition",
+          totalPlan: "Total",
+          inBasket: "Basket",
+          remaining: "Remain",
+          limitLabel: "Limit",
+          setLimitBtn: "Set Limit",
+          collectedSummary: "{completed} of {total} collected",
+          productPlaceholder: "Product name (e.g. Sourdough)",
+          categorySectionTitle: "Category / Allergen",
+          imageSourceTitle: "Product Image Source",
+          optImageSearch: "🌐 Global Web Search (Auto photo match)",
+          optImageStandard: "🛒 Standard Category Icon (Clean vector)",
+          optImageCustom: "🔗 Custom Image URL (Paste link)",
+          customUrlPlaceholder: "Paste direct image link (https://...)",
+          addItemBtn: "Add Item",
+          checklistHeader: "Checklist",
+          clearAllBtn: "Clear",
+          shareBtn: "Share",
+          emptyTitle: "Cart is Empty",
+          emptyDesc: "Add grocery items above or switch filters.",
+          modalClearTitle: "Clear Shopping List?",
+          modalClearDesc: "All items in this list will be removed.",
+          btnConfirmClear: "Clear All Items",
+          btnCancel: "Cancel",
+          modalLimitTitle: "Set Budget Limit (₼)",
+          modalLimitDesc: "Enter your target budget in Azerbaijani Manat.",
+          btnSaveLimit: "Save Limit",
+          modalListsTitle: "Shopping Lists",
+          modalListsDesc: "Select active list or create a new one.",
+          modalShareTitle: "Share Shopping List",
+          modalShareDesc: "Send list with prices and total in Manats.",
+          shareCopyBtn: "Copy to Clipboard",
+          sharePrintBtn: "Print Receipt",
+          copiedToast: "Copied to clipboard!",
+          overBudgetAlert: "Over budget limit by {diff}!",
+          deleteAria: "Delete",
+          glutenFreeBadge: "🌾 Gluten-Free",
+          sortDefault: "Sort: Default",
+          sortUnbought: "Unbought First",
+          sortPriceAsc: "Price: Low to High",
+          sortPriceDesc: "Price: High to Low",
+          favChips: [
+            { name: "Bananas", cat: "produce", unit: "kg", price: 2.80 },
+            { name: "Almond Milk", cat: "dairy", unit: "L", price: 3.50 },
+            { name: "Gluten-Free Bread", cat: "gluten-free", unit: "pcs", price: 4.20 },
+            { name: "Eggs", cat: "dairy", unit: "pack", price: 2.40 },
+            { name: "Sparkling Water", cat: "drinks", unit: "L", price: 1.20 }
+          ],
+          categories: {
+            all: "All",
+            "gluten-free": "Gluten-Free",
+            produce: "Produce",
+            dairy: "Dairy & Eggs",
+            bakery: "Bakery",
+            meat: "Meat & Fish",
+            pantry: "Pantry",
+            drinks: "Drinks",
+            other: "Other"
+          },
+          units: { pcs: "pcs", kg: "kg", g: "g", L: "L", pack: "pack" },
+          authorCardName: "Ali Aliyev",
+          authorCardSubtitle: "Apple Account, Developer & Contacts",
+          authorModalName: "Ali Aliyev",
+          authorRole: "Creator & Lead Frontend Developer",
+          authorBio: "Creator of Smart Grocery Checklist. Designed with care for clean aesthetics, speed in aisles, and effortless budgeting.",
+          authorWebsiteLabel: "Official Website & Portfolio",
+          authorContactLabel: "Socials & Direct Contacts",
+          authorContactSub: "Connect with Ali",
+          authorDoneBtn: "Done"
+        },
+        ru: {
+          appTitle: "Список покупок",
+          appSubtitle: "iOS издание",
+          totalPlan: "Всего",
+          inBasket: "В корзине",
+          remaining: "Остаток",
+          limitLabel: "Лимит",
+          setLimitBtn: "Лимит ₼",
+          collectedSummary: "Собрано {completed} из {total}",
+          productPlaceholder: "Название товара (напр., Хлеб)",
+          categorySectionTitle: "Категория / Аллерген",
+          imageSourceTitle: "Источник изображения",
+          optImageSearch: "🌐 Глобальный веб-поиск (Автоподбор фото)",
+          optImageStandard: "🛒 Стандартная иконка (Вектор)",
+          optImageCustom: "🔗 Своя ссылка на картинку (URL)",
+          customUrlPlaceholder: "Вставьте прямую ссылку на фото (https://...)",
+          addItemBtn: "Добавить",
+          checklistHeader: "Список",
+          clearAllBtn: "Очистить",
+          shareBtn: "Поделиться",
+          emptyTitle: "Корзина пуста",
+          emptyDesc: "Добавьте товары выше или переключите фильтры.",
+          modalClearTitle: "Очистить список?",
+          modalClearDesc: "Все товары в этом списке будут удалены.",
+          btnConfirmClear: "Да, очистить всё",
+          btnCancel: "Отмена",
+          modalLimitTitle: "Лимит бюджета (₼)",
+          modalLimitDesc: "Задайте целевой лимит расходов в Манатах.",
+          btnSaveLimit: "Сохранить лимит",
+          modalListsTitle: "Списки покупок",
+          modalListsDesc: "Выберите активный список или переключитесь.",
+          modalShareTitle: "Отправить список",
+          modalShareDesc: "Передать список с количеством и ценами в манатах.",
+          shareCopyBtn: "Скопировать текст",
+          sharePrintBtn: "Печать чека",
+          copiedToast: "Список скопирован!",
+          overBudgetAlert: "Превышение лимита на {diff}!",
+          deleteAria: "Удалить",
+          glutenFreeBadge: "🌾 Без глютена",
+          sortDefault: "Сортировка: Обычная",
+          sortUnbought: "Сначала некупленные",
+          sortPriceAsc: "Цена: по возрастанию",
+          sortPriceDesc: "Цена: по убыванию",
+          favChips: [
+            { name: "Бананы", cat: "produce", unit: "kg", price: 2.80 },
+            { name: "Молоко", cat: "dairy", unit: "L", price: 2.50 },
+            { name: "Безглютеновый хлеб", cat: "gluten-free", unit: "pcs", price: 4.20 },
+            { name: "Яйца", cat: "dairy", unit: "pack", price: 2.40 },
+            { name: "Вода", cat: "drinks", unit: "L", price: 1.00 }
+          ],
+          categories: {
+            all: "Все",
+            "gluten-free": "Без глютена",
+            produce: "Овощи и фрукты",
+            dairy: "Молочное и яйца",
+            bakery: "Выпечка",
+            meat: "Мясо и рыба",
+            pantry: "Бакалея",
+            drinks: "Напитки",
+            other: "Другое"
+          },
+          units: { pcs: "шт.", kg: "кг", g: "г", L: "л", pack: "уп." },
+          authorCardName: "Али Алиев",
+          authorCardSubtitle: "Аккаунт Apple, iCloud и другое",
+          authorModalName: "Али Алиев",
+          authorRole: "Создатель и Frontend-разработчик",
+          authorBio: "Автор проекта Smart Grocery Checklist. Спроектировано с вниманием к деталям для удобных, быстрых и экономных покупок каждый день.",
+          authorWebsiteLabel: "Личный сайт и портфолио",
+          authorContactLabel: "Контакты и соцсети",
+          authorContactSub: "Связаться с автором",
+          authorDoneBtn: "Готово"
+        }
+      };
+
+      /* ===================================================================
+         2. CATEGORY & AUTO-CATEGORIZATION DICTIONARY
+         =================================================================== */
+      const CATEGORIES = [
+        { id: "all", icon: "🛒" },
+        { id: "gluten-free", icon: "🌾", isGlutenFree: true },
+        { id: "produce", icon: "🥦" },
+        { id: "dairy", icon: "🥛" },
+        { id: "bakery", icon: "🍞" },
+        { id: "meat", icon: "🥩" },
+        { id: "pantry", icon: "🥫" },
+        { id: "drinks", icon: "🥤" },
+        { id: "other", icon: "📦" }
+      ];
+
+      const AUTO_CAT_KEYWORDS = {
+        "gluten-free": ["gluten", "глютен", "безглютен", "celiac", "целиак"],
+        "produce": ["apple", "banana", "avocado", "tomato", "cucumber", "potato", "onion", "fruit", "lemon", "berry", "яблок", "банан", "авокадо", "помидор", "томат", "огур", "картоф", "лук", "зелень", "апельсин", "лимон", "ягод", "морков", "капуст", "перец", "чеснок"],
+        "dairy": ["milk", "cheese", "yogurt", "butter", "egg", "cream", "молок", "сыр", "творог", "йогурт", "масло", "яйц", "сметан", "сливк", "кефир"],
+        "bakery": ["bread", "sourdough", "baguette", "croissant", "cake", "bun", "хлеб", "багет", "круассан", "булочк", "пирог", "лаваш", "торт", "булка"],
+        "meat": ["chicken", "beef", "meat", "fish", "salmon", "pork", "turkey", "shrimp", "куриц", "говядин", "мяс", "рыб", "лосось", "фарш", "сосиск", "колбас", "стейк", "креветк"],
+        "pantry": ["pasta", "rice", "sugar", "salt", "flour", "cereal", "bean", "oil", "макарон", "рис", "крупа", "сахар", "соль", "мука", "гречк", "овсянк", "консерв", "масло"],
+        "drinks": ["water", "juice", "coffee", "tea", "soda", "cola", "beer", "вод", "сок", "чай", "кофе", "кола", "напиток", "пиво", "квас"]
+      };
+
+      /* ===================================================================
+         3. APPLICATION STATE & STORAGE KEYS
+         =================================================================== */
+      const STORAGE_APP_KEY = "grocery_checklist_ios_v5_data";
+
+      const state = {
+        currentLang: "en",
+        theme: "light",
+        activeListId: "list-1",
+        selectedUnit: "pcs",
+        currentQuantity: 1,
+        selectedCategory: "gluten-free",
+        activeFilter: "all",
+        activeSort: "default",
+        lists: [
+          { id: "list-1", name: "Supermarket", icon: "🛒", budgetLimit: 50.00, items: [] },
+          { id: "list-2", name: "Pharmacy", icon: "💊", budgetLimit: 25.00, items: [] },
+          { id: "list-3", name: "Party & BBQ", icon: "🎉", budgetLimit: 80.00, items: [] }
+        ]
+      };
+
+      /* ===================================================================
+         4. DOM SELECTORS
+         =================================================================== */
+      const DOM = {
+        langBtnEn: document.getElementById("langBtnEn"),
+        langBtnRu: document.getElementById("langBtnRu"),
+        themeToggleBtn: document.getElementById("themeToggleBtn"),
+        btnListSelector: document.getElementById("btnListSelector"),
+        currentListIcon: document.getElementById("currentListIcon"),
+        currentListName: document.getElementById("currentListName"),
+        txtBrandTitle: document.getElementById("txtBrandTitle"),
+        txtBrandSubtitle: document.getElementById("txtBrandSubtitle"),
+        btnEditLimit: document.getElementById("btnEditLimit"),
+        txtEditLimitBtn: document.getElementById("txtEditLimitBtn"),
+        txtTotalPlanLabel: document.getElementById("txtTotalPlanLabel"),
+        txtInBasketLabel: document.getElementById("txtInBasketLabel"),
+        txtRemainingLabel: document.getElementById("txtRemainingLabel"),
+        txtLimitLabel: document.getElementById("txtLimitLabel"),
+        totalBudgetVal: document.getElementById("totalBudgetVal"),
+        spentBudgetVal: document.getElementById("spentBudgetVal"),
+        remainBudgetVal: document.getElementById("remainBudgetVal"),
+        limitBudgetVal: document.getElementById("limitBudgetVal"),
+        budgetAlertBanner: document.getElementById("budgetAlertBanner"),
+        txtBudgetAlertMsg: document.getElementById("txtBudgetAlertMsg"),
+        progressBar: document.getElementById("progressBar"),
+        itemsSummary: document.getElementById("itemsSummary"),
+        progressPercentage: document.getElementById("progressPercentage"),
+        itemInput: document.getElementById("itemInput"),
+        btnVoiceInput: document.getElementById("btnVoiceInput"),
+        itemPriceInput: document.getElementById("itemPriceInput"),
+        quickFavoritesRow: document.getElementById("quickFavoritesRow"),
+        unitsSegmented: document.getElementById("unitsSegmented"),
+        btnMinus: document.getElementById("btnMinus"),
+        btnPlus: document.getElementById("btnPlus"),
+        quantityDisplay: document.getElementById("quantityDisplay"),
+        txtCategorySectionTitle: document.getElementById("txtCategorySectionTitle"),
+        formCategoryPills: document.getElementById("formCategoryPills"),
+        txtImageSourceTitle: document.getElementById("txtImageSourceTitle"),
+        imageSourceSelect: document.getElementById("imageSourceSelect"),
+        optImageSearch: document.getElementById("optImageSearch"),
+        optImageStandard: document.getElementById("optImageStandard"),
+        optImageCustom: document.getElementById("optImageCustom"),
+        customUrlContainer: document.getElementById("customUrlContainer"),
+        customUrlInput: document.getElementById("customUrlInput"),
+        btnAddItem: document.getElementById("btnAddItem"),
+        txtAddItemBtn: document.getElementById("txtAddItemBtn"),
+        txtChecklistHeader: document.getElementById("txtChecklistHeader"),
+        sortSelect: document.getElementById("sortSelect"),
+        optSortDefault: document.getElementById("optSortDefault"),
+        optSortUnbought: document.getElementById("optSortUnbought"),
+        optSortPriceAsc: document.getElementById("optSortPriceAsc"),
+        optSortPriceDesc: document.getElementById("optSortPriceDesc"),
+        btnShareList: document.getElementById("btnShareList"),
+        txtShareBtn: document.getElementById("txtShareBtn"),
+        btnClearAll: document.getElementById("btnClearAll"),
+        txtClearAllBtn: document.getElementById("txtClearAllBtn"),
+        filterPillsContainer: document.getElementById("filterPillsContainer"),
+        groceryList: document.getElementById("groceryList"),
+        emptyState: document.getElementById("emptyState"),
+        txtEmptyTitle: document.getElementById("txtEmptyTitle"),
+        txtEmptyDesc: document.getElementById("txtEmptyDesc"),
+        // Modals
+        clearModal: document.getElementById("clearModal"),
+        modalClearTitle: document.getElementById("modalClearTitle"),
+        modalClearDesc: document.getElementById("modalClearDesc"),
+        btnConfirmClear: document.getElementById("btnConfirmClear"),
+        btnCancelClear: document.getElementById("btnCancelClear"),
+        limitModal: document.getElementById("limitModal"),
+        modalLimitTitle: document.getElementById("modalLimitTitle"),
+        modalLimitDesc: document.getElementById("modalLimitDesc"),
+        inputLimitValue: document.getElementById("inputLimitValue"),
+        btnSaveLimit: document.getElementById("btnSaveLimit"),
+        btnCancelLimit: document.getElementById("btnCancelLimit"),
+        listSelectorModal: document.getElementById("listSelectorModal"),
+        modalListsTitle: document.getElementById("modalListsTitle"),
+        modalListsDesc: document.getElementById("modalListsDesc"),
+        listsModalItems: document.getElementById("listsModalItems"),
+        btnCloseListModal: document.getElementById("btnCloseListModal"),
+        shareModal: document.getElementById("shareModal"),
+        modalShareTitle: document.getElementById("modalShareTitle"),
+        modalShareDesc: document.getElementById("modalShareDesc"),
+        btnShareWhatsApp: document.getElementById("btnShareWhatsApp"),
+        btnShareTelegram: document.getElementById("btnShareTelegram"),
+        btnShareCopy: document.getElementById("btnShareCopy"),
+        txtShareCopyBtn: document.getElementById("txtShareCopyBtn"),
+        btnSharePrint: document.getElementById("btnSharePrint"),
+        txtSharePrintBtn: document.getElementById("txtSharePrintBtn"),
+        btnCloseShareModal: document.getElementById("btnCloseShareModal"),
+        btnOpenAuthorModal: document.getElementById("btnOpenAuthorModal"),
+        authorModal: document.getElementById("authorModal"),
+        txtAuthorCardName: document.getElementById("txtAuthorCardName"),
+        txtAuthorCardSubtitle: document.getElementById("txtAuthorCardSubtitle"),
+        txtAuthorModalName: document.getElementById("txtAuthorModalName"),
+        txtAuthorModalRole: document.getElementById("txtAuthorModalRole"),
+        txtAuthorModalBio: document.getElementById("txtAuthorModalBio"),
+        txtAuthorWebsiteLabel: document.getElementById("txtAuthorWebsiteLabel"),
+        txtAuthorContactLabel: document.getElementById("txtAuthorContactLabel"),
+        txtAuthorContactSub: document.getElementById("txtAuthorContactSub"),
+        txtAuthorDoneBtn: document.getElementById("txtAuthorDoneBtn"),
+        btnCloseAuthorModal: document.getElementById("btnCloseAuthorModal")
+      };
+
+      /* ===================================================================
+         5. UTILITIES: HAPTIC FEEDBACK, MANAT & HTML ESCAPE
+         =================================================================== */
+      function triggerHaptic(intensity) {
+        if (!("vibrate" in navigator)) return;
+        try {
+          if (intensity === "light") navigator.vibrate(12);
+          else if (intensity === "medium") navigator.vibrate(25);
+          else if (intensity === "success") navigator.vibrate([15, 40, 25]);
+          else if (intensity === "warning") navigator.vibrate([30, 50, 30]);
+        } catch (e) {}
+      }
+
+      function formatManat(amount) {
+        const num = parseFloat(amount) || 0;
+        return "₼ " + num.toFixed(2);
+      }
+
+      function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, tag => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+        }[tag] || tag));
+      }
+
+      function getActiveList() {
+        return state.lists.find(l => l.id === state.activeListId) || state.lists[0];
+      }
+
+      /* ===================================================================
+         6. LOCAL STORAGE PERSISTENCE
+         =================================================================== */
+      function saveToStorage() {
+        try {
+          localStorage.setItem(STORAGE_APP_KEY, JSON.stringify({
+            currentLang: state.currentLang,
+            theme: state.theme,
+            activeListId: state.activeListId,
+            lists: state.lists
+          }));
+        } catch (e) {
+          console.warn("Storage write error:", e);
+        }
+      }
+
+      function loadFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_APP_KEY);
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data.currentLang) state.currentLang = data.currentLang;
+            if (data.theme) state.theme = data.theme;
+            if (data.activeListId) state.activeListId = data.activeListId;
+            if (data.lists && data.lists.length) state.lists = data.lists;
+          } else {
+            // Seed sample grocery items in list 1
+            const active = getActiveList();
+            active.items = [
+              {
+                id: "sample-1",
+                name: "Gluten-Free Almond Bread",
+                price: 4.50,
+                quantity: 1,
+                unit: "pcs",
+                completed: false,
+                category: "gluten-free",
+                imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=150&q=80"
+              },
+              {
+                id: "sample-2",
+                name: "Fresh Avocados",
+                price: 2.80,
+                quantity: 1.5,
+                unit: "kg",
+                completed: true,
+                category: "produce",
+                imageUrl: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=150&q=80"
+              },
+              {
+                id: "sample-3",
+                name: "Lactose-Free Milk",
+                price: 3.20,
+                quantity: 2,
+                unit: "L",
+                completed: false,
+                category: "dairy",
+                imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=150&q=80"
+              }
+            ];
+            saveToStorage();
+          }
+        } catch (e) {
+          console.warn("Storage read error:", e);
+        }
+      }
+
+      /* ===================================================================
+         7. BILINGUAL I18N RENDERING
+         =================================================================== */
+      function applyLanguage(lang) {
+        state.currentLang = lang === "ru" ? "ru" : "en";
+        const t = I18N[state.currentLang];
+
+        DOM.langBtnEn.classList.toggle("is-active", state.currentLang === "en");
+        DOM.langBtnRu.classList.toggle("is-active", state.currentLang === "ru");
+
+        DOM.txtBrandTitle.textContent = t.appTitle;
+        DOM.txtBrandSubtitle.textContent = t.appSubtitle;
+        DOM.txtTotalPlanLabel.textContent = t.totalPlan;
+        DOM.txtInBasketLabel.textContent = t.inBasket;
+        DOM.txtRemainingLabel.textContent = t.remaining;
+        DOM.txtLimitLabel.textContent = t.limitLabel;
+        DOM.txtEditLimitBtn.textContent = t.setLimitBtn;
+
+        DOM.itemInput.placeholder = t.productPlaceholder;
+        DOM.txtCategorySectionTitle.textContent = t.categorySectionTitle;
+        DOM.txtImageSourceTitle.textContent = t.imageSourceTitle;
+        DOM.optImageSearch.textContent = t.optImageSearch;
+        DOM.optImageStandard.textContent = t.optImageStandard;
+        DOM.optImageCustom.textContent = t.optImageCustom;
+        DOM.customUrlInput.placeholder = t.customUrlPlaceholder;
+        DOM.txtAddItemBtn.textContent = t.addItemBtn;
+        DOM.txtChecklistHeader.textContent = t.checklistHeader;
+        DOM.txtClearAllBtn.textContent = t.clearAllBtn;
+        DOM.txtShareBtn.textContent = t.shareBtn;
+
+        DOM.optSortDefault.textContent = t.sortDefault;
+        DOM.optSortUnbought.textContent = t.sortUnbought;
+        DOM.optSortPriceAsc.textContent = t.sortPriceAsc;
+        DOM.optSortPriceDesc.textContent = t.sortPriceDesc;
+
+        DOM.txtEmptyTitle.textContent = t.emptyTitle;
+        DOM.txtEmptyDesc.textContent = t.emptyDesc;
+
+        DOM.modalClearTitle.textContent = t.modalClearTitle;
+        DOM.modalClearDesc.textContent = t.modalClearDesc;
+        DOM.btnConfirmClear.textContent = t.btnConfirmClear;
+        DOM.btnCancelClear.textContent = t.btnCancel;
+
+        DOM.modalLimitTitle.textContent = t.modalLimitTitle;
+        DOM.modalLimitDesc.textContent = t.modalLimitDesc;
+        DOM.btnSaveLimit.textContent = t.btnSaveLimit;
+        DOM.btnCancelLimit.textContent = t.btnCancel;
+
+        DOM.modalListsTitle.textContent = t.modalListsTitle;
+        DOM.modalListsDesc.textContent = t.modalListsDesc;
+        DOM.modalShareTitle.textContent = t.modalShareTitle;
+        DOM.modalShareDesc.textContent = t.modalShareDesc;
+        DOM.txtShareCopyBtn.textContent = t.shareCopyBtn;
+        DOM.txtSharePrintBtn.textContent = t.sharePrintBtn;
+        DOM.txtAuthorCardName.textContent = t.authorCardName;
+        DOM.txtAuthorCardSubtitle.textContent = t.authorCardSubtitle;
+        DOM.txtAuthorModalName.textContent = t.authorModalName;
+        DOM.txtAuthorModalRole.textContent = t.authorRole;
+        DOM.txtAuthorModalBio.textContent = t.authorBio;
+        DOM.txtAuthorWebsiteLabel.textContent = t.authorWebsiteLabel;
+        DOM.txtAuthorContactLabel.textContent = t.authorContactLabel;
+        DOM.txtAuthorContactSub.textContent = t.authorContactSub;
+        DOM.txtAuthorDoneBtn.textContent = t.authorDoneBtn;
+
+        renderQuickFavorites();
+        renderFormCategoryPills();
+        render();
+        saveToStorage();
+      }
+
+      function initTheme() {
+        document.body.classList.toggle("dark-theme", state.theme === "dark");
+        DOM.themeToggleBtn.setAttribute("aria-checked", state.theme === "dark" ? "true" : "false");
+      }
+
+      function toggleTheme() {
+        triggerHaptic("light");
+        state.theme = state.theme === "dark" ? "light" : "dark";
+        initTheme();
+        saveToStorage();
+      }
+
+      /* ===================================================================
+         8. SMART AUTO-CATEGORIZATION & VOICE INPUT
+         =================================================================== */
+      function autoDetectCategory(text) {
+        const lower = text.toLowerCase();
+        for (const [catId, keywords] of Object.entries(AUTO_CAT_KEYWORDS)) {
+          if (keywords.some(kw => lower.includes(kw))) {
+            return catId;
+          }
+        }
+        return null;
+      }
+
+      function handleInputChange() {
+        const text = DOM.itemInput.value;
+        const matchedCat = autoDetectCategory(text);
+        if (matchedCat && matchedCat !== state.selectedCategory) {
+          state.selectedCategory = matchedCat;
+          renderFormCategoryPills();
+          triggerHaptic("light");
+        }
+      }
+
+      // Web Speech API Voice Recognition
+      function initVoiceRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          DOM.btnVoiceInput.style.display = "none";
+          return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        DOM.btnVoiceInput.addEventListener("click", () => {
+          triggerHaptic("medium");
+          recognition.lang = state.currentLang === "ru" ? "ru-RU" : "en-US";
+          DOM.btnVoiceInput.classList.add("is-recording");
+          recognition.start();
+        });
+
+        recognition.onresult = (event) => {
+          DOM.btnVoiceInput.classList.remove("is-recording");
+          triggerHaptic("success");
+          const transcript = event.results[0][0].transcript;
+          DOM.itemInput.value = transcript;
+          handleInputChange();
+          DOM.itemPriceInput.focus();
+        };
+
+        recognition.onerror = () => {
+          DOM.btnVoiceInput.classList.remove("is-recording");
+          triggerHaptic("warning");
+        };
+
+        recognition.onend = () => {
+          DOM.btnVoiceInput.classList.remove("is-recording");
+        };
+      }
+
+      /* ===================================================================
+         9. QUICK FAVORITES CHIPS
+         =================================================================== */
+      function renderQuickFavorites() {
+        DOM.quickFavoritesRow.innerHTML = "";
+        const chips = I18N[state.currentLang].favChips;
+        chips.forEach(chip => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "fav-chip";
+          btn.textContent = `+ ${chip.name}`;
+          btn.addEventListener("click", () => {
+            triggerHaptic("light");
+            DOM.itemInput.value = chip.name;
+            DOM.itemPriceInput.value = chip.price.toFixed(2);
+            state.selectedCategory = chip.cat;
+            setUnit(chip.unit);
+            renderFormCategoryPills();
+            DOM.itemPriceInput.focus();
+          });
+          DOM.quickFavoritesRow.appendChild(btn);
+        });
+      }
+
+      /* ===================================================================
+         10. UNITS SELECTOR & STEPPER
+         =================================================================== */
+      function setUnit(unit) {
+        state.selectedUnit = unit;
+        DOM.unitsSegmented.querySelectorAll(".unit-segment-btn").forEach(btn => {
+          btn.classList.toggle("is-active", btn.getAttribute("data-unit") === unit);
+        });
+      }
+
+      function setupUnits() {
+        DOM.unitsSegmented.addEventListener("click", (e) => {
+          const btn = e.target.closest(".unit-segment-btn");
+          if (btn) {
+            triggerHaptic("light");
+            setUnit(btn.getAttribute("data-unit"));
+          }
+        });
+      }
+
+      function setQuantity(val) {
+        state.currentQuantity = Math.max(0.5, Math.min(999, Math.round(val * 10) / 10));
+        DOM.quantityDisplay.textContent = state.currentQuantity;
+      }
+
+      /* ===================================================================
+         11. PILL TABS RENDERING
+         =================================================================== */
+      function getCategoryLabel(catId) {
+        return I18N[state.currentLang].categories[catId] || catId;
+      }
+
+      function renderFormCategoryPills() {
+        DOM.formCategoryPills.innerHTML = "";
+        CATEGORIES.filter(c => c.id !== "all").forEach(cat => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          const isGf = cat.id === "gluten-free";
+          btn.className = `ios-pill-btn ${isGf ? "gf-pill" : ""} ${state.selectedCategory === cat.id ? "is-active" : ""}`;
+          btn.innerHTML = `<span>${cat.icon}</span><span>${getCategoryLabel(cat.id)}</span>`;
+          btn.addEventListener("click", () => {
+            triggerHaptic("light");
+            state.selectedCategory = cat.id;
+            renderFormCategoryPills();
+          });
+          DOM.formCategoryPills.appendChild(btn);
+        });
+      }
+
+      function renderFilterPills() {
+        DOM.filterPillsContainer.innerHTML = "";
+        const activeList = getActiveList();
+        CATEGORIES.forEach(cat => {
+          const count = cat.id === "all" 
+            ? activeList.items.length 
+            : activeList.items.filter(i => i.category === cat.id).length;
+
+          const isGf = cat.id === "gluten-free";
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `filter-pill ${isGf ? "gf-tab" : ""} ${state.activeFilter === cat.id ? "is-active" : ""}`;
+          btn.innerHTML = `
+            <span>${cat.icon}</span>
+            <span>${getCategoryLabel(cat.id)}</span>
+            <span class="filter-counter">${count}</span>
+          `;
+          btn.addEventListener("click", () => {
+            triggerHaptic("light");
+            state.activeFilter = cat.id;
+            render();
+          });
+          DOM.filterPillsContainer.appendChild(btn);
+        });
+      }
+
+      /* ===================================================================
+         12. IMAGE SEARCH VIA WIKIMEDIA
+         =================================================================== */
+      async function searchWebImage(productName) {
+        try {
+          const words = productName.trim().split(" ");
+          const keyword = words[words.length - 1] || words[0];
+          const query = encodeURIComponent(keyword);
+
+          const url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=thumbnail&pithumbsize=200&generator=prefixsearch&gpssearch=${query}&origin=*`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            const pages = data.query?.pages || {};
+            const pageList = Object.values(pages).sort((a, b) => (a.index || 99) - (b.index || 99));
+            const match = pageList.find(p => p.thumbnail && p.thumbnail.source);
+            if (match && match.thumbnail.source) return match.thumbnail.source;
+          }
+        } catch (err) {}
+        return `https://loremflickr.com/150/150/food,${encodeURIComponent(productName.trim())}`;
+      }
+
+      /* ===================================================================
+         13. ITEM CRUD & SORTING
+         =================================================================== */
+      async function addItem() {
+        const rawName = DOM.itemInput.value.trim();
+        if (!rawName) {
+          DOM.itemInput.focus();
+          return;
+        }
+
+        triggerHaptic("medium");
+        const priceVal = parseFloat(DOM.itemPriceInput.value) || 0;
+        const imageMode = DOM.imageSourceSelect.value;
+        let imageUrl = null;
+
+        if (imageMode === "custom") imageUrl = DOM.customUrlInput.value.trim() || null;
+
+        const activeList = getActiveList();
+        const newItem = {
+          id: "item-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5),
+          name: rawName,
+          price: priceVal,
+          quantity: state.currentQuantity,
+          unit: state.selectedUnit,
+          completed: false,
+          category: state.selectedCategory,
+          imageUrl: imageUrl
+        };
+
+        activeList.items.unshift(newItem);
+
+        // Reset inputs
+        DOM.itemInput.value = "";
+        DOM.itemPriceInput.value = "";
+        DOM.customUrlInput.value = "";
+        setQuantity(1);
+        saveToStorage();
+        render();
+
+        if (imageMode === "search") {
+          searchWebImage(rawName).then(foundUrl => {
+            if (foundUrl) {
+              const itemRef = activeList.items.find(i => i.id === newItem.id);
+              if (itemRef) {
+                itemRef.imageUrl = foundUrl;
+                saveToStorage();
+                renderList();
+              }
+            }
+          });
+        }
+      }
+
+      function toggleItem(id) {
+        triggerHaptic("light");
+        const activeList = getActiveList();
+        const item = activeList.items.find(i => i.id === id);
+        if (item) {
+          item.completed = !item.completed;
+          saveToStorage();
+          render();
+        }
+      }
+
+      function deleteItem(id) {
+        triggerHaptic("medium");
+        const activeList = getActiveList();
+        const row = document.querySelector(`[data-id="${id}"]`);
+        if (row) {
+          row.classList.add("is-removing");
+          setTimeout(() => {
+            activeList.items = activeList.items.filter(i => i.id !== id);
+            saveToStorage();
+            render();
+          }, 180);
+        } else {
+          activeList.items = activeList.items.filter(i => i.id !== id);
+          saveToStorage();
+          render();
+        }
+      }
+
+      function sortItems(items) {
+        const cloned = [...items];
+        if (state.activeSort === "unbought") {
+          return cloned.sort((a, b) => Number(a.completed) - Number(b.completed));
+        } else if (state.activeSort === "price-asc") {
+          return cloned.sort((a, b) => ((a.price * a.quantity) - (b.price * b.quantity)));
+        } else if (state.activeSort === "price-desc") {
+          return cloned.sort((a, b) => ((b.price * b.quantity) - (a.price * a.quantity)));
+        }
+        return cloned;
+      }
+
+      /* ===================================================================
+         14. BUDGET CALCULATIONS & LIMIT ALERT
+         =================================================================== */
+      function updateBudgetAndStats() {
+        const activeList = getActiveList();
+        let totalSum = 0;
+        let spentSum = 0;
+
+        activeList.items.forEach(item => {
+          const lineTotal = (item.price || 0) * (item.quantity || 1);
+          totalSum += lineTotal;
+          if (item.completed) spentSum += lineTotal;
+        });
+
+        const remainSum = Math.max(0, totalSum - spentSum);
+        const limitVal = activeList.budgetLimit || 0;
+
+        DOM.totalBudgetVal.textContent = formatManat(totalSum);
+        DOM.spentBudgetVal.textContent = formatManat(spentSum);
+        DOM.remainBudgetVal.textContent = formatManat(remainSum);
+        DOM.limitBudgetVal.textContent = formatManat(limitVal);
+
+        // Budget Limit Alert Banner
+        if (limitVal > 0 && totalSum > limitVal) {
+          const diff = formatManat(totalSum - limitVal);
+          DOM.budgetAlertBanner.style.display = "flex";
+          DOM.txtBudgetAlertMsg.textContent = I18N[state.currentLang].overBudgetAlert.replace("{diff}", diff);
+        } else {
+          DOM.budgetAlertBanner.style.display = "none";
+        }
+
+        // Progress Bar
+        const totalItems = activeList.items.length;
+        const completedCount = activeList.items.filter(i => i.completed).length;
+        const percentage = totalItems === 0 ? 0 : Math.round((completedCount / totalItems) * 100);
+
+        DOM.itemsSummary.textContent = I18N[state.currentLang].collectedSummary
+          .replace("{completed}", completedCount)
+          .replace("{total}", totalItems);
+        DOM.progressPercentage.textContent = `${percentage}%`;
+        DOM.progressBar.style.width = `${percentage}%`;
+
+        DOM.btnClearAll.style.opacity = totalItems === 0 ? "0.4" : "1";
+        DOM.btnClearAll.style.pointerEvents = totalItems === 0 ? "none" : "auto";
+      }
+
+      /* ===================================================================
+         15. RENDER CHECKLIST
+         =================================================================== */
+      function getCategoryIcon(catId) {
+        const cat = CATEGORIES.find(c => c.id === catId);
+        return cat ? cat.icon : "🛒";
+      }
+
+      function renderList() {
+        DOM.groceryList.innerHTML = "";
+        const activeList = getActiveList();
+        const t = I18N[state.currentLang];
+
+        let visibleItems = state.activeFilter === "all"
+          ? activeList.items
+          : activeList.items.filter(i => i.category === state.activeFilter);
+
+        visibleItems = sortItems(visibleItems);
+
+        visibleItems.forEach(item => {
+          const li = document.createElement("li");
+          li.className = `glass-card ios-item-row ${item.completed ? "is-completed" : ""}`;
+          li.setAttribute("data-id", item.id);
+
+          const categoryEmoji = getCategoryIcon(item.category);
+          const isGlutenFree = item.category === "gluten-free";
+          const lineTotal = (item.price || 0) * item.quantity;
+          const unitLabel = t.units[item.unit] || item.unit;
+
+          li.innerHTML = `
+            <div class="item-interactive-zone" role="checkbox" aria-checked="${item.completed}" tabindex="0">
+              <div class="ios-checkbox-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+
+              <div class="item-media-wrap" aria-hidden="true">
+                ${item.imageUrl 
+                  ? `<img src="${escapeHTML(item.imageUrl)}" class="item-thumb-img" alt="" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                     <div class="item-category-emoji" style="display: none;">${categoryEmoji}</div>`
+                  : `<div class="item-category-emoji">${categoryEmoji}</div>`
+                }
+              </div>
+
+              <div class="item-text-column">
+                <span class="item-name">${escapeHTML(item.name)}</span>
+                <div class="item-badges-row">
+                  <span class="badge-qty">${item.quantity} ${unitLabel}</span>
+                  ${item.price > 0 ? `<span class="badge-manat-price">${formatManat(lineTotal)} (${formatManat(item.price)}/${unitLabel})</span>` : ``}
+                  ${isGlutenFree ? `<span class="badge-gluten-free">${t.glutenFreeBadge}</span>` : `<span class="badge-qty">${escapeHTML(getCategoryLabel(item.category))}</span>`}
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="ios-btn-delete" aria-label="${t.deleteAria} ${escapeHTML(item.name)}">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          `;
+
+          const zone = li.querySelector(".item-interactive-zone");
+          zone.addEventListener("click", () => toggleItem(item.id));
+          zone.addEventListener("keydown", (e) => {
+            if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleItem(item.id); }
+          });
+
+          const del = li.querySelector(".ios-btn-delete");
+          del.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteItem(item.id);
+          });
+
+          DOM.groceryList.appendChild(li);
+        });
+
+        if (visibleItems.length === 0) {
+          DOM.emptyState.style.display = "flex";
+          DOM.groceryList.style.display = "none";
+        } else {
+          DOM.emptyState.style.display = "none";
+          DOM.groceryList.style.display = "flex";
+        }
+      }
+
+      function render() {
+        const activeList = getActiveList();
+        DOM.currentListIcon.textContent = activeList.icon;
+        DOM.currentListName.textContent = activeList.name;
+        renderFilterPills();
+        renderList();
+        updateBudgetAndStats();
+      }
+
+      /* ===================================================================
+         16. SHARING LOGIC (WHATSAPP, TELEGRAM & CLIPBOARD)
+         =================================================================== */
+      function generateShareText() {
+        const activeList = getActiveList();
+        const t = I18N[state.currentLang];
+        let totalSum = 0;
+        let spentSum = 0;
+
+        let text = `${activeList.icon} ${activeList.name} (${t.appTitle})\n`;
+        text += `──────────────────\n`;
+
+        activeList.items.forEach(item => {
+          const lineTotal = (item.price || 0) * item.quantity;
+          totalSum += lineTotal;
+          if (item.completed) spentSum += lineTotal;
+
+          const check = item.completed ? "✓" : " ";
+          const unitLabel = t.units[item.unit] || item.unit;
+          const pricePart = item.price > 0 ? ` (${formatManat(lineTotal)})` : "";
+          const gfTag = item.category === "gluten-free" ? " [GF]" : "";
+          text += `[${check}] ${item.name} — ${item.quantity} ${unitLabel}${pricePart}${gfTag}\n`;
+        });
+
+        text += `──────────────────\n`;
+        text += `${t.totalPlan}: ${formatManat(totalSum)} | ${t.inBasket}: ${formatManat(spentSum)}\n`;
+        return text;
+      }
+
+      function setupSharing() {
+        DOM.btnShareList.addEventListener("click", () => {
+          triggerHaptic("medium");
+          const text = generateShareText();
+          if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+            navigator.share({ title: getActiveList().name, text: text }).catch(() => {});
+          } else {
+            DOM.shareModal.classList.add("is-active");
+          }
+        });
+
+        DOM.btnShareWhatsApp.addEventListener("click", () => {
+          triggerHaptic("light");
+          const text = encodeURIComponent(generateShareText());
+          window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+        });
+
+        DOM.btnShareTelegram.addEventListener("click", () => {
+          triggerHaptic("light");
+          const text = encodeURIComponent(generateShareText());
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${text}`, "_blank");
+        });
+
+        DOM.btnShareCopy.addEventListener("click", () => {
+          triggerHaptic("success");
+          navigator.clipboard.writeText(generateShareText()).then(() => {
+            DOM.txtShareCopyBtn.textContent = I18N[state.currentLang].copiedToast;
+            setTimeout(() => {
+              DOM.txtShareCopyBtn.textContent = I18N[state.currentLang].shareCopyBtn;
+            }, 1800);
+          });
+        });
+
+        DOM.btnSharePrint.addEventListener("click", () => {
+          DOM.shareModal.classList.remove("is-active");
+          setTimeout(() => window.print(), 200);
+        });
+
+        DOM.btnCloseShareModal.addEventListener("click", () => {
+          DOM.shareModal.classList.remove("is-active");
+        });
+
+        // Author profile modal
+        DOM.btnOpenAuthorModal.addEventListener("click", () => {
+          triggerHaptic("medium");
+          DOM.authorModal.classList.add("is-active");
+        });
+        DOM.btnOpenAuthorModal.addEventListener("keydown", (e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            triggerHaptic("medium");
+            DOM.authorModal.classList.add("is-active");
+          }
+        });
+        DOM.btnCloseAuthorModal.addEventListener("click", () => {
+          DOM.authorModal.classList.remove("is-active");
+        });
+      }
+
+      /* ===================================================================
+         17. MULTI-LIST MODAL & BUDGET LIMIT MODAL
+         =================================================================== */
+      function renderListsModal() {
+        DOM.listsModalItems.innerHTML = "";
+        state.lists.forEach(l => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn-share-channel";
+          btn.style.justifyContent = "space-between";
+          btn.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>${l.icon}</span>
+              <span style="font-weight: 700;">${escapeHTML(l.name)}</span>
+            </div>
+            <span style="font-size: 0.78rem; opacity: 0.7;">${l.items.length} items</span>
+          `;
+          btn.addEventListener("click", () => {
+            triggerHaptic("light");
+            state.activeListId = l.id;
+            DOM.listSelectorModal.classList.remove("is-active");
+            render();
+            saveToStorage();
+          });
+          DOM.listsModalItems.appendChild(btn);
+        });
+      }
+
+      function setupModals() {
+        // Multi-list switcher modal
+        DOM.btnListSelector.addEventListener("click", () => {
+          triggerHaptic("light");
+          renderListsModal();
+          DOM.listSelectorModal.classList.add("is-active");
+        });
+        DOM.btnCloseListModal.addEventListener("click", () => {
+          DOM.listSelectorModal.classList.remove("is-active");
+        });
+
+        // Budget Limit modal
+        DOM.btnEditLimit.addEventListener("click", () => {
+          triggerHaptic("light");
+          const activeList = getActiveList();
+          DOM.inputLimitValue.value = (activeList.budgetLimit || 0).toFixed(2);
+          DOM.limitModal.classList.add("is-active");
+          setTimeout(() => DOM.inputLimitValue.focus(), 150);
+        });
+
+        DOM.btnSaveLimit.addEventListener("click", () => {
+          triggerHaptic("success");
+          const activeList = getActiveList();
+          activeList.budgetLimit = parseFloat(DOM.inputLimitValue.value) || 0;
+          DOM.limitModal.classList.remove("is-active");
+          updateBudgetAndStats();
+          saveToStorage();
+        });
+
+        DOM.btnCancelLimit.addEventListener("click", () => {
+          DOM.limitModal.classList.remove("is-active");
+        });
+
+        // Clear All modal
+        DOM.btnClearAll.addEventListener("click", () => {
+          if (getActiveList().items.length === 0) return;
+          triggerHaptic("warning");
+          DOM.clearModal.classList.add("is-active");
+        });
+
+        DOM.btnConfirmClear.addEventListener("click", () => {
+          triggerHaptic("success");
+          getActiveList().items = [];
+          DOM.clearModal.classList.remove("is-active");
+          render();
+          saveToStorage();
+        });
+
+        DOM.btnCancelClear.addEventListener("click", () => {
+          DOM.clearModal.classList.remove("is-active");
+        });
+
+        // Backdrop click & Escape key
+        document.querySelectorAll(".ios-modal-backdrop").forEach(backdrop => {
+          backdrop.addEventListener("click", (e) => {
+            if (e.target === backdrop) backdrop.classList.remove("is-active");
+          });
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            document.querySelectorAll(".ios-modal-backdrop.is-active").forEach(m => m.classList.remove("is-active"));
+          }
+        });
+      }
+
+      /* ===================================================================
+         18. EVENT LISTENERS INITIALIZATION
+         =================================================================== */
+      function setupEventListeners() {
+        DOM.langBtnEn.addEventListener("click", () => applyLanguage("en"));
+        DOM.langBtnRu.addEventListener("click", () => applyLanguage("ru"));
+        DOM.themeToggleBtn.addEventListener("click", toggleTheme);
+
+        DOM.itemInput.addEventListener("input", handleInputChange);
+
+        DOM.btnMinus.addEventListener("click", () => {
+          triggerHaptic("light");
+          setQuantity(state.currentQuantity - 1);
+        });
+        DOM.btnPlus.addEventListener("click", () => {
+          triggerHaptic("light");
+          setQuantity(state.currentQuantity + 1);
+        });
+
+        DOM.imageSourceSelect.addEventListener("change", (e) => {
+          DOM.customUrlContainer.style.display = e.target.value === "custom" ? "block" : "none";
+        });
+
+        DOM.btnAddItem.addEventListener("click", addItem);
+        DOM.itemInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addItem(); } });
+        DOM.itemPriceInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addItem(); } });
+
+        DOM.sortSelect.addEventListener("change", (e) => {
+          triggerHaptic("light");
+          state.activeSort = e.target.value;
+          renderList();
+        });
+
+        setupUnits();
+        setupModals();
+        setupSharing();
+        initVoiceRecognition();
+      }
+
+      /* ===================================================================
+         19. BOOTSTRAP
+         =================================================================== */
+      function init() {
+        loadFromStorage();
+        initTheme();
+        applyLanguage(state.currentLang);
+        setupEventListeners();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+
+    })();
+  </script>
+</body>
+</html>
